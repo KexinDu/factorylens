@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+mlflow.db
+mlruns
+frontend/node_modules
+frontend/dist
+data/raw/*.zip
+data/raw/hydraulic
+*.egg-info

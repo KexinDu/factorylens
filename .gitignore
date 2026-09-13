@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.env
+node_modules/
+frontend/dist/
+mlruns/
+mlflow.db
+.matplotlib/
+data/raw/*.zip
+data/raw/hydraulic/
+data/raw/ai4i2020.csv
+data/machineguard.db
+frontend/*.tsbuildinfo

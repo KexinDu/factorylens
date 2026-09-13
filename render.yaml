@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: machineguard-ai
+    runtime: docker
+    region: frankfurt
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health
+    autoDeployTrigger: commit

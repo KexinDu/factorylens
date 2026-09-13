@@ -1,0 +1,4 @@
+machine_id,pressure_bar,oil_temperature_c,motor_power_w,volume_flow_lpm,vibration_mms
+HYD-DEMO-01,160.6735,35.621986,2538.9294,6.709815,0.57695
+HYD-DEMO-02,156.39146,54.2676,2427.4004,6.305361,0.648267
+HYD-DEMO-03,174.89124,54.14257,2676.6587,3.019103,0.73675
