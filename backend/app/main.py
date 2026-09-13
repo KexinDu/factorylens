@@ -7,7 +7,7 @@ import pandas as pd
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import settings
@@ -139,4 +139,12 @@ async def predict_batch(request: Request, file: Annotated[UploadFile, File()]):
 
 frontend_dist = settings.model_path.parents[2] / "frontend" / "dist"
 if frontend_dist.exists():
+
+    @app.get("/analysis", include_in_schema=False)
+    @app.get("/batch", include_in_schema=False)
+    @app.get("/performance", include_in_schema=False)
+    @app.get("/about", include_in_schema=False)
+    def frontend_route():
+        return FileResponse(frontend_dist / "index.html")
+
     app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
