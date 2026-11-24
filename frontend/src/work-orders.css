@@ -1,0 +1,44 @@
+.work-order-panel fieldset,
+.work-order-page fieldset {
+  display: grid;
+  gap: 12px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-width: 0;
+  justify-items: start;
+}
+
+.work-order-panel label,
+.work-order-page label {
+  max-width: 42rem;
+}
+
+.work-order-panel textarea,
+.work-order-panel select,
+.work-order-page textarea,
+.work-order-page select {
+  width: 100%;
+  border: 1px solid #d8e1e9;
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+
+.work-order-panel .work-order-confirm {
+  display: flex;
+  align-items: center;
+}
+
+.work-order-confirm input {
+  width: auto;
+}
+
+.work-order-page details {
+  margin-top: 16px;
+}
+
+.work-order-page .knowledge-item small {
+  overflow-wrap: anywhere;
+}

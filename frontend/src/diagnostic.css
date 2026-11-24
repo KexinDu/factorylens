@@ -1,0 +1,46 @@
+.diagnostic-page textarea {
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid #d8e1e9;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.diagnostic-page .diagnostic-consent {
+  display: flex;
+  align-items: center;
+}
+
+.diagnostic-consent input {
+  width: auto;
+}
+
+.diagnostic-page [role="status"]:empty {
+  display: none;
+}
+
+.diagnostic-result {
+  display: grid;
+  gap: 18px;
+  overflow-wrap: anywhere;
+}
+
+.diagnostic-result dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.diagnostic-result dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.diagnostic-result summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.diagnostic-result details li + li {
+  margin-top: 12px;
+}

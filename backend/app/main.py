@@ -9,8 +9,15 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from httpx import AsyncClient
+from openai import AsyncOpenAI
 
 from .config import settings
+from .diagnostic_agent import TOOL_SELECTION_SECONDS
+from .diagnostic_api import router as diagnostic_router
+from .diagnostic_history import DiagnosticHistory
+from .knowledge import KnowledgeLibrary
+from .knowledge_api import router as knowledge_router
 from .schemas import (
     AssetListResponse,
     BatchResponse,
@@ -20,6 +27,8 @@ from .schemas import (
     PredictionResult,
 )
 from .service import PredictionService
+from .work_orders import WorkOrderStore
+from .work_orders_api import router as work_orders_router
 
 logging.basicConfig(
     level=settings.log_level,
@@ -30,9 +39,30 @@ logger = logging.getLogger("machineguard")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    base_url, credential = settings.llm_connection()
     app.state.models = PredictionService(settings)
+    app.state.knowledge = KnowledgeLibrary(
+        settings.database_path, settings.knowledge_chunk_length, settings.knowledge_chunk_overlap
+    )
+    app.state.knowledge.initialize()
+    app.state.knowledge_upload_limit = settings.knowledge_max_upload_bytes
+    app.state.diagnostic_history = DiagnosticHistory(settings.database_path)
+    app.state.diagnostic_history.initialize()
+    app.state.work_orders = WorkOrderStore(settings.database_path)
+    app.state.work_orders.initialize()
+    app.state.openai_model = settings.openai_model
+    app.state.llm_provider = settings.llm_provider
+    key = credential.get_secret_value().strip() if credential else ""
+    app.state.openai_client = AsyncOpenAI(
+        api_key=key, base_url=base_url, timeout=TOOL_SELECTION_SECONDS, max_retries=0,
+        http_client=AsyncClient(follow_redirects=False, timeout=TOOL_SELECTION_SECONDS),
+    ) if key else None
     logger.info("model_artifacts_loaded")
-    yield
+    try:
+        yield
+    finally:
+        if app.state.openai_client is not None:
+            await app.state.openai_client.close()
 
 
 app = FastAPI(title="MachineGuard AI API", version="1.0.0", lifespan=lifespan)
@@ -40,14 +70,19 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Content-Type"],
+    expose_headers=["Content-Disposition"],
 )
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_error(_: Request, exc: RequestValidationError):
+async def validation_error(request: Request, exc: RequestValidationError):
     logger.warning("request_validation_failed")
+    if request.url.path.startswith("/api/v1/diagnostics"):
+        return JSONResponse(status_code=422, content={"detail": "Invalid diagnostic request."})
+    if request.url.path.startswith("/api/v1/work-orders"):
+        return JSONResponse(status_code=422, content={"detail": "Check the work order fields."})
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 
@@ -137,11 +172,18 @@ async def predict_batch(request: Request, file: Annotated[UploadFile, File()]):
     return {"count": len(results), "results": results}
 
 
+app.include_router(knowledge_router)
+app.include_router(diagnostic_router)
+app.include_router(work_orders_router)
+
 frontend_dist = settings.model_path.parents[2] / "frontend" / "dist"
 if frontend_dist.exists():
 
     @app.get("/analysis", include_in_schema=False)
     @app.get("/batch", include_in_schema=False)
+    @app.get("/knowledge", include_in_schema=False)
+    @app.get("/diagnostics", include_in_schema=False)
+    @app.get("/work-orders", include_in_schema=False)
     @app.get("/performance", include_in_schema=False)
     @app.get("/about", include_in_schema=False)
     def frontend_route():

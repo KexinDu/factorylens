@@ -5,6 +5,15 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .env
+.env.*
+!.env.example
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3
+*.log
 node_modules/
 frontend/dist/
 mlruns/

@@ -4,6 +4,8 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  BookOpen,
+  ClipboardList,
   CheckCircle2,
   Download,
   Factory,
@@ -31,6 +33,9 @@ import {
   YAxis,
 } from "recharts";
 import Papa from "papaparse";
+import KnowledgeBase from "./KnowledgeBase";
+import DiagnosticCopilot from "./DiagnosticCopilot";
+import WorkOrders from "./WorkOrders";
 import { api } from "./services/api";
 import type {
   AssetListItem,
@@ -82,6 +87,9 @@ function Shell({ children }: { children: React.ReactNode }) {
     ["/", "Overview", Gauge],
     ["/analysis", "Machine Analysis", Search],
     ["/batch", "Batch Analysis", FileUp],
+    ["/knowledge", "Knowledge Base", BookOpen],
+    ["/diagnostics", "AI Diagnostic Copilot", Sparkles],
+    ["/work-orders", "Maintenance Work Orders", ClipboardList],
   ] as const;
   return (
     <div className="app-shell">
@@ -887,6 +895,11 @@ function MachineAnalysis() {
         </aside>
       </div>
       <div ref={resultRef}>{result && <Result result={result} />}</div>
+      <NavLink className="secondary" to={`/diagnostics?${new URLSearchParams({
+        device_id: result?.machine_id || form.machine_id,
+      })}`}>
+        Open AI Diagnostic Copilot
+      </NavLink>
     </div>
   );
 }
@@ -1079,8 +1092,9 @@ function Performance() {
         <span className="eyebrow">HELD-OUT EVALUATION</span>
         <h2>Model performance</h2>
         <p>
-          Metrics below come directly from the saved test evaluation on the
-          official UCI AI4I dataset.
+          Metrics below come from the saved held-out evaluation on UCI's
+          Condition Monitoring of Hydraulic Systems dataset, which contains
+          measurements from a hydraulic test rig.
         </p>
       </div>
       <div className="model-banner">
@@ -1223,7 +1237,7 @@ function About() {
           ],
           [
             "What are the limitations?",
-            "AI4I is synthetic industrial data; one-row predictions lack temporal context; thresholds require site-specific validation; drift is not monitored in this demo.",
+            "The UCI hydraulic test-rig data comes from controlled operating cycles. A single cycle summary lacks temporal context. Thresholds require site-specific validation, and this demo does not monitor drift.",
           ],
         ].map(([h, p], i) => (
           <article key={h}>
@@ -1257,6 +1271,9 @@ export default function App() {
         <Route path="/" element={<Overview />} />
         <Route path="/analysis" element={<MachineAnalysis />} />
         <Route path="/batch" element={<BatchAnalysis />} />
+        <Route path="/knowledge" element={<KnowledgeBase />} />
+        <Route path="/diagnostics" element={<DiagnosticCopilot />} />
+        <Route path="/work-orders" element={<WorkOrders />} />
         <Route path="/performance" element={<Performance />} />
         <Route path="/about" element={<About />} />
       </Routes>

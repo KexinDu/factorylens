@@ -1,0 +1,60 @@
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 18px;
+}
+
+.knowledge-page form,
+.knowledge-page label {
+  display: grid;
+  gap: 8px;
+}
+
+.knowledge-page form {
+  gap: 14px;
+  margin-top: 14px;
+  justify-items: start;
+}
+
+.knowledge-page label {
+  width: 100%;
+}
+
+.knowledge-page input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d8e1e9;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.knowledge-page [aria-live]:empty {
+  display: none;
+}
+
+.knowledge-item {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #d8e1e9;
+  overflow-wrap: anywhere;
+}
+
+.knowledge-item h4 {
+  margin: 0 0 6px;
+}
+
+.knowledge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.knowledge-excerpt {
+  margin-top: 8px;
+  white-space: pre-wrap;
+}
+
+.knowledge-confirm p {
+  margin-bottom: 0;
+}

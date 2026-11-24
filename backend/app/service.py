@@ -191,7 +191,7 @@ class PredictionService:
             )
         return {"machine": item.model_dump(), "assessment": assessment, "source": "Manual entry"}
 
-    def lookup(self, machine_id: str) -> dict:
+    def equipment_record(self, machine_id: str) -> dict:
         with self._connect() as connection:
             row = connection.execute(
                 "SELECT * FROM assets WHERE machine_id = ?", (machine_id.strip().upper(),)
@@ -204,12 +204,16 @@ class PredictionService:
         )
         return {
             "machine": machine.model_dump(),
-            "assessment": self.predict(machine),
             "source": row["source"],
             "component_condition": json.loads(row["component_condition"])
             if row["component_condition"]
             else None,
         }
+
+    def lookup(self, machine_id: str) -> dict:
+        record = self.equipment_record(machine_id)
+        assessment = self.predict(MachineInput.model_validate(record["machine"]))
+        return {**record, "assessment": assessment}
 
     def list_assets(self, category: str, limit: int, offset: int) -> dict:
         clauses, parameters = [], []

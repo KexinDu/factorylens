@@ -1,4 +1,13 @@
 .git
+.env
+.env.*
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite3
+*.log
 .venv
 __pycache__
 .pytest_cache

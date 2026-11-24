@@ -1,16 +1,30 @@
 import type {
   AssetListResponse,
+  CreateWorkOrder,
+  Diagnosis,
+  DiagnosticSummary,
   FleetSummary,
+  KnowledgeDetail,
+  KnowledgeDocument,
+  KnowledgeMatch,
   MachineInput,
   MachineLookupResult,
   ModelInfo,
   PredictionResult,
+  WorkOrder,
+  WorkOrderPage,
+  WorkOrderStatus,
 } from "../types";
 const BASE = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+async function request<T>(
+  path: string,
+  options?: RequestInit,
+  timeoutMs = 15000,
+  decode?: (response: Response) => Promise<T>,
+): Promise<T> {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 15000);
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(`${BASE}${path}`, {
       ...options,
@@ -28,6 +42,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
           : "Please check the submitted values and try again.",
       );
     }
+    if (response.status === 204) return undefined as T;
+    if (decode) return await decode(response);
     return (await response.json()) as T;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError")
@@ -42,7 +58,98 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 }
 
+async function decodeReport(
+  response: Response,
+): Promise<{ blob: Blob; filename: string }> {
+  const filename = /filename="(factorylens-[a-z0-9_-]+\.md)"/i.exec(
+    response.headers.get("Content-Disposition") ?? "",
+  )?.[1];
+  if (
+    !filename ||
+    !response.headers.get("Content-Type")?.startsWith("text/markdown")
+  ) {
+    throw new Error("The server did not return a valid Markdown attachment.");
+  }
+  return { filename, blob: await response.blob() };
+}
+
 export const api = {
+  maintenanceReport: (kind: "diagnostics" | "work-orders", id: string) =>
+    request(
+      `/${kind}/${encodeURIComponent(id)}/report`,
+      undefined,
+      15000,
+      decodeReport,
+    ),
+  createWorkOrder: (order: CreateWorkOrder) =>
+    request<WorkOrder>("/work-orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order),
+    }),
+  workOrders: (status: WorkOrderStatus | "", limit: number, offset: number) => {
+    const query = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+    });
+    if (status) query.set("status", status);
+    return request<WorkOrderPage>(`/work-orders?${query}`);
+  },
+  workOrder: (id: string) =>
+    request<WorkOrder>(`/work-orders/${encodeURIComponent(id)}`),
+  updateWorkOrder: (
+    id: string,
+    update: { status?: WorkOrderStatus; maintenance_notes: string },
+  ) =>
+    request<WorkOrder>(`/work-orders/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(update),
+    }),
+  diagnose: (
+    deviceId: string,
+    question: string,
+    useOpenAI: boolean,
+    expectedProvider?: DiagnosticSummary["llm_provider"],
+  ) =>
+    request<Diagnosis>(
+      "/diagnostics",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          device_id: deviceId,
+          question,
+          use_openai: useOpenAI,
+          expected_provider: expectedProvider,
+        }),
+      },
+      105000,
+    ),
+  diagnosticHistory: () => request<DiagnosticSummary[]>("/diagnostics"),
+  diagnosticConfig: () =>
+    request<{ provider: DiagnosticSummary["llm_provider"] }>(
+      "/diagnostics/config",
+    ),
+  diagnosisDetail: (id: string) =>
+    request<Diagnosis>(`/diagnostics/${encodeURIComponent(id)}`),
+  knowledgeDocuments: () =>
+    request<KnowledgeDocument[]>("/knowledge/documents"),
+  knowledgeDetail: (id: string) =>
+    request<KnowledgeDetail>(`/knowledge/documents/${encodeURIComponent(id)}`),
+  uploadKnowledge: (form: FormData) =>
+    request<KnowledgeDocument>("/knowledge/documents", {
+      method: "POST",
+      body: form,
+    }),
+  deleteKnowledge: (id: string) =>
+    request<void>(`/knowledge/documents/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  searchKnowledge: (query: string, topK: number) =>
+    request<KnowledgeMatch[]>(
+      `/knowledge/search?${new URLSearchParams({ q: query, top_k: String(topK) })}`,
+    ),
   predict: (input: MachineInput) =>
     request<PredictionResult>("/predict", {
       method: "POST",
