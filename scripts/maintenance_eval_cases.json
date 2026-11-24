@@ -1,0 +1,10 @@
+[
+  {"id": "pressure", "question": "What should I check for unusually low system pressure?", "expected_document": "pressure-and-flow.md", "expected_heading": "Pressure abnormalities", "expect_empty": false},
+  {"id": "temperature", "question": "What could cause higher oil temperature and reduced cooling?", "expected_document": "temperature-power-vibration.md", "expected_heading": "Oil temperature abnormalities", "expect_empty": false},
+  {"id": "power", "question": "Why might mean motor power increase under hydraulic demand?", "expected_document": "temperature-power-vibration.md", "expected_heading": "Motor power abnormalities", "expect_empty": false},
+  {"id": "flow", "question": "What can lead to reduced hydraulic volume flow?", "expected_document": "pressure-and-flow.md", "expected_heading": "Hydraulic flow abnormalities", "expect_empty": false},
+  {"id": "vibration", "question": "How should higher vibration velocity and sensor mounting be assessed?", "expected_document": "temperature-power-vibration.md", "expected_heading": "Vibration abnormalities", "expect_empty": false},
+  {"id": "maintenance", "question": "What are general maintenance and inspection principles for comparable cycles?", "expected_document": "hydraulic-overview.md", "expected_heading": "General maintenance and inspection", "expect_empty": false},
+  {"id": "unrelated", "question": "How did astronomers discover exoplanets orbiting distant stars?", "expect_empty": true},
+  {"id": "unavailable_specification", "question": "What is the manufacturer torque specification for the pressure relief valve?", "expect_empty": true}
+]
